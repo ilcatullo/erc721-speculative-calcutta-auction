@@ -43,6 +43,7 @@ contract ESCA {
   ERC20 public wager;
 
   uint public tokenConstant;
+  uint public ethFee;
   address public admin;
 
   // Defing ownership conditions
@@ -51,6 +52,7 @@ contract ESCA {
 
   constructor () public {
     tokenConstant = uint(10**18);
+    ethFee = uint(2500000);
     admin = msg.sender;
   }
 
@@ -66,7 +68,7 @@ contract ESCA {
     require(defineSource(_source).ownerOf(_tokenId) == msg.sender);
     require(merchant[_source][tokenId] == address(0x0));
     require(_marketValue > 0);
-    nonFungible.transferFrom(msg.sender, address(this), _tokenId);
+    defineSource(_source).transferFrom(msg.sender, address(this), _tokenId);
     merchant[_source][_tokenId] = msg.sender;
     value[_source][_tokenId] = _marketValue;
   }
@@ -80,10 +82,11 @@ contract ESCA {
     punter[_source][_tokenId].insert(msg.sender);
   }
 
-  function speculativeWager(address _outcome, uint _tokenId, uint _entryWager) public {
+  function speculativeWager(address _source, address _outcome, uint _tokenId, uint _entryWager) public {
     require(!speculator[_source][_tokenId].contains(msg.sender));
-    require(value[_tokenId].div(4) == _entryWager);
-    require(punter[_tokenId].contains(_outcome));
+    require(value[_source][_tokenId].div(4) == _entryWager);
+    require(punter[_source][_tokenId].contains(_outcome));
     wager.transferFrom(msg.sender, address(this), _wagerAmount);
-    speculator[_tokenId].insert(msg.sender);
+    speculator[_source][_tokenId].insert(msg.sender);
 }
+
